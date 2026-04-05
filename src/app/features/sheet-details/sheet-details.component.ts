@@ -8,8 +8,9 @@ import { SheetHeaderComponent } from './components/sheet-header.component';
 import { ScorePlayerComponent } from '../score-player/components/score-player/score-player.component';
 import { SheetCommentsComponent } from './components/sheet-comments.component';
 import { SheetRelatedComponent } from './components/sheet-related.component';
+import { SheetRehearsalKitComponent } from './components/sheet-rehearsal-kit.component';
 
-type Tab = 'overview' | 'sheet' | 'chords' | 'comments' | 'related';
+type Tab = 'overview' | 'sheet' | 'chords' | 'kit' | 'comments' | 'related';
 
 @Component({
   selector: 'app-sheet-details',
@@ -20,7 +21,8 @@ type Tab = 'overview' | 'sheet' | 'chords' | 'comments' | 'related';
     SheetHeaderComponent,
     ScorePlayerComponent,
     SheetCommentsComponent,
-    SheetRelatedComponent
+    SheetRelatedComponent,
+    SheetRehearsalKitComponent
   ],
   template: `
     @if (isLoading()) {
@@ -82,6 +84,17 @@ type Tab = 'overview' | 'sheet' | 'chords' | 'comments' | 'related';
             >
               Cifra
               @if (activeTab() === 'chords') {
+                <div class="absolute bottom-0 left-0 w-full h-0.5 bg-primary-600 rounded-t-full"></div>
+              }
+            </button>
+            <button 
+              (click)="activeTab.set('kit')"
+              class="pb-4 text-sm font-bold transition-colors relative"
+              [class.text-primary-600]="activeTab() === 'kit'"
+              [class.text-surface-500]="activeTab() !== 'kit'"
+            >
+              Kit de Ensaio
+              @if (activeTab() === 'kit') {
                 <div class="absolute bottom-0 left-0 w-full h-0.5 bg-primary-600 rounded-t-full"></div>
               }
             </button>
@@ -158,6 +171,9 @@ type Tab = 'overview' | 'sheet' | 'chords' | 'comments' | 'related';
                   Esta é uma visualização simplificada. Baixe o PDF para a versão completa.
                 </div>
               </div>
+            }
+            @case ('kit') {
+              <app-sheet-rehearsal-kit [sheet]="sheet()!"></app-sheet-rehearsal-kit>
             }
             @case ('comments') {
               <app-sheet-comments [sheetId]="sheet()!.id"></app-sheet-comments>
