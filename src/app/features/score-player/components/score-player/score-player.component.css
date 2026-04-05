@@ -1,0 +1,45 @@
+/* Estilos específicos para o AlphaTab injetado no DOM */
+.alphatab-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+  min-height: 100%;
+}
+
+/* Cursor de reprodução (linha vertical) */
+.at-cursor-bar {
+  background: rgba(108, 92, 231, 0.3);
+  border-radius: 4px;
+}
+
+/* Seleção de compasso/nota */
+.at-selection {
+  background: rgba(108, 92, 231, 0.15);
+}
+
+/* Destaque da batida atual */
+.at-cursor-beat {
+  background: rgba(108, 92, 231, 0.5);
+  border-radius: 4px;
+}
+
+/* Ocultar scrollbar padrão para um visual mais limpo */
+.alphatab-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.alphatab-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.alphatab-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 6px;
+  border: 2px solid #F8FAFC;
+}
+
+.alphatab-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-400 */
+}

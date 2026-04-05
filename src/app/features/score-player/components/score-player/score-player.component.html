@@ -1,0 +1,135 @@
+<div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col h-[700px] relative">
+  
+  <!-- Toolbar Superior (Controles) -->
+  <div class="bg-slate-50/80 backdrop-blur-md border-b border-slate-200/60 p-4 flex flex-col md:flex-row items-center justify-between gap-4 z-20">
+    
+    <!-- Controles de Reprodução -->
+    <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
+      <button 
+        (click)="playPause()" 
+        [disabled]="!isReady()" 
+        class="w-14 h-14 rounded-full bg-[#6C5CE7] text-white flex items-center justify-center hover:bg-[#5a4bcf] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-[#6C5CE7]/30 hover:shadow-xl hover:-translate-y-1"
+        [title]="isPlaying() ? 'Pausar' : 'Tocar'"
+      >
+        <mat-icon class="text-3xl w-8 h-8">{{ isPlaying() ? 'pause' : 'play_arrow' }}</mat-icon>
+      </button>
+      <button 
+        (click)="stop()" 
+        [disabled]="!isReady()" 
+        class="w-12 h-12 rounded-full bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+        title="Parar"
+      >
+        <mat-icon class="text-2xl w-6 h-6">stop</mat-icon>
+      </button>
+    </div>
+
+    <!-- Controles de Zoom e Andamento -->
+    <div class="flex flex-wrap items-center justify-center gap-4 w-full md:w-auto">
+      
+      <!-- Andamento (Tempo) -->
+      <div class="flex items-center gap-1 bg-white border border-slate-200/80 rounded-2xl p-1.5 shadow-sm">
+        <div class="flex items-center justify-center w-8 h-8 bg-amber-50 rounded-xl text-amber-600 mr-1">
+          <mat-icon class="text-[18px] w-[18px] h-[18px]">speed</mat-icon>
+        </div>
+        <button 
+          (click)="setTempo(tempo() - 10)" 
+          [disabled]="!isReady() || tempo() <= 50" 
+          class="w-8 h-8 rounded-xl text-slate-600 hover:bg-slate-100 flex items-center justify-center disabled:opacity-50 transition-colors"
+        >
+          <mat-icon class="text-[18px] w-[18px] h-[18px]">remove</mat-icon>
+        </button>
+        <span class="text-sm font-bold text-slate-700 w-12 text-center">{{ tempo() }}%</span>
+        <button 
+          (click)="setTempo(tempo() + 10)" 
+          [disabled]="!isReady() || tempo() >= 200" 
+          class="w-8 h-8 rounded-xl text-slate-600 hover:bg-slate-100 flex items-center justify-center disabled:opacity-50 transition-colors"
+        >
+          <mat-icon class="text-[18px] w-[18px] h-[18px]">add</mat-icon>
+        </button>
+      </div>
+
+      <!-- Zoom -->
+      <div class="flex items-center gap-1 bg-white border border-slate-200/80 rounded-2xl p-1.5 shadow-sm">
+        <div class="flex items-center justify-center w-8 h-8 bg-[#0984E3]/10 rounded-xl text-[#0984E3] mr-1">
+          <mat-icon class="text-[18px] w-[18px] h-[18px]">zoom_in</mat-icon>
+        </div>
+        <button 
+          (click)="setZoom(zoom() - 10)" 
+          [disabled]="!isReady() || zoom() <= 50" 
+          class="w-8 h-8 rounded-xl text-slate-600 hover:bg-slate-100 flex items-center justify-center disabled:opacity-50 transition-colors"
+        >
+          <mat-icon class="text-[18px] w-[18px] h-[18px]">remove</mat-icon>
+        </button>
+        <span class="text-sm font-bold text-slate-700 w-12 text-center">{{ zoom() }}%</span>
+        <button 
+          (click)="setZoom(zoom() + 10)" 
+          [disabled]="!isReady() || zoom() >= 200" 
+          class="w-8 h-8 rounded-xl text-slate-600 hover:bg-slate-100 flex items-center justify-center disabled:opacity-50 transition-colors"
+        >
+          <mat-icon class="text-[18px] w-[18px] h-[18px]">add</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Seletor de Faixa (Instrumento) -->
+    <div class="flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl px-4 py-2 shadow-sm w-full md:w-auto">
+      <div class="flex items-center justify-center w-8 h-8 bg-emerald-50 rounded-xl text-emerald-600">
+        <mat-icon class="text-[18px] w-[18px] h-[18px]">queue_music</mat-icon>
+      </div>
+      <select 
+        class="bg-transparent text-slate-700 text-sm font-bold focus:outline-none focus:ring-0 cursor-pointer flex-1 md:min-w-[160px] appearance-none"
+        [disabled]="!isReady() || tracks().length === 0"
+        (change)="onTrackChange($event)"
+      >
+        @if (tracks().length === 0) {
+          <option value="">Carregando faixas...</option>
+        }
+        @for (track of tracks(); track track.index) {
+          <option [value]="track.index" [selected]="track.index === selectedTrackIndex()">
+            {{ track.name }}
+          </option>
+        }
+      </select>
+      <mat-icon class="text-slate-400 text-[18px] w-[18px] h-[18px] pointer-events-none">expand_more</mat-icon>
+    </div>
+  </div>
+
+  <!-- Área de Renderização da Partitura -->
+  <div class="relative flex-1 overflow-auto bg-[#F8FAFC]" #alphaTabWrapper>
+    
+    <!-- Estado de Carregamento -->
+    @if (isLoading()) {
+      <div class="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+        <div class="relative w-20 h-20 mb-6">
+          <div class="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+          <div class="absolute inset-0 border-4 border-[#6C5CE7] rounded-full border-t-transparent animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center text-[#6C5CE7]">
+            <mat-icon>music_note</mat-icon>
+          </div>
+        </div>
+        <h3 class="text-slate-900 font-extrabold text-xl mb-2">Preparando sua partitura...</h3>
+        <p class="text-slate-500 font-medium">Carregando notas, áudio e instrumentos</p>
+      </div>
+    }
+
+    <!-- Estado de Erro -->
+    @if (hasError()) {
+      <div class="absolute inset-0 bg-white z-10 flex flex-col items-center justify-center p-8 text-center">
+        <div class="w-24 h-24 rounded-full bg-rose-50 flex items-center justify-center mb-6">
+          <mat-icon class="text-rose-500 text-6xl w-14 h-14">error_outline</mat-icon>
+        </div>
+        <h3 class="text-slate-900 font-extrabold text-2xl mb-3 tracking-tight">Ops! Algo deu errado</h3>
+        <p class="text-slate-500 font-medium mb-8 max-w-md text-lg">{{ errorMessage() }}</p>
+        <button 
+          (click)="retry()" 
+          class="px-8 py-4 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:-translate-y-1 font-bold flex items-center gap-2"
+        >
+          <mat-icon>refresh</mat-icon> Tentar Novamente
+        </button>
+      </div>
+    }
+
+    <!-- Container onde o AlphaTab injeta o Canvas/SVG -->
+    <div #alphaTabContainer class="alphatab-container"></div>
+  </div>
+</div>
